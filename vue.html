@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Activity Selector | Vue.js | Eka Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        .sport-box {
+            width: 150px;
+            height: 85px;
+            text-align: center;
+            line-height: 85px;
+            border: 1px solid #000;
+            background-color: #ffffff;
+            color: #000;
+            position: relative;
+        }
+        .me-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 85px;
+            text-align: center;
+            line-height: 85px;
+            color: #ffffff;
+            background-color: grey;
+            z-index: 1;
+        }
+        .sport-box .me-box {
+            top: 0px;
+            left: 0px;
+            height: 83px;
+            width: 148px;
+            line-height: 83px;
+            transform: translate(0%, 0%);
+        }
+        .sport-boxes {
+            position: relative;
+            border: 1px solid #000;
+            min-height: 60vh;
+        }
+        .cstm-col-first {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+        .cstm-col-right {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .cstm-col-bottom {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .bounce-enter-active, .bounce-leave-active {
+            animation: bounce-in 0.5s;
+        }
+
+        @keyframes bounce-in {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5" id="app">
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <h2>What do you want to do for a sport activity today?</h2>
+                <hr>
+                <form id="sportsForm" class="mb-3">
+                    <div v-for="sport in sports" :key="sport.name" class="form-check form-check-inline">
+                        <input type="radio" v-model="selectedSport" :value="sport.name" :id="`${sport.name}-radio`" name="sport">
+                        <label :for="`${sport.name}-radio`">{{ sport.name }}</label>
+                    </div>
+                </form>
+                <div class="mb-3 p-3 sport-boxes" :style="{ backgroundColor: selectedSportColor }">
+                    <div v-for="sport in sports" :key="sport.name" :class="'cstm-col-' + sport.position">
+                        <div class="sport-box" :id="sport.name + '-box'">
+                            {{ sport.name }}
+                            <div v-if="selectedSport === sport.name" class="me-box" @click="moveMeBox(sport.position)">Me</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="result">
+                    <strong>Select Sport:</strong>&nbsp;<span>{{ selectedSport }}</span>
+                </div>
+                <hr>
+                <strong>Equipment:</strong>
+                <ul>
+                    <li v-for="equipment in selectedEquipment">{{ equipment }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                sports: [
+                    { name: 'Football', bg_color: '#6bb46e', equipments: ['Ball', 'Football Shoes', 'Goalpost'], position: 'left' },
+                    { name: 'Volleyball', bg_color: '#c30f42', equipments: ['Ball', 'Nets'], position: 'right' },
+                    { name: 'Badminton', bg_color: '#2a82be', equipments: ['Shuttlecock', 'Nets', 'Racket'], position: 'bottom' }
+                ],
+                selectedSport: '',
+            },
+            computed: {
+                selectedSportColor() {
+                    const sport = this.sports.find(s => s.name === this.selectedSport);
+                    return sport ? sport.bg_color : 'white';
+                },
+                selectedEquipment() {
+                    const sport = this.sports.find(s => s.name === this.selectedSport);
+                    return sport ? sport.equipments : [];
+                }
+            },
+            methods: {
+                moveMeBox(position) {
+                    const meBox = document.querySelector('.me-box');
+                    const targetBox = document.querySelector(`.sport-box[id$=${position}-box]`);
+
+                    if (meBox && targetBox) {
+                        meBox.style.transition = 'all 0.5s ease-in-out';
+
+                        const targetPosition = targetBox.getBoundingClientRect();
+                        meBox.style.transform = `translate(${targetPosition.left}px, ${targetPosition.top}px)`;
+                        meBox.style.opacity = 0;
+
+                        setTimeout(() => {
+                            targetBox.appendChild(meBox);
+                            meBox.style.transform = 'translate(0, 0)';
+                            meBox.style.opacity = 1;
+                        }, 500);
+                    }
+                }
+            },
+            watch: {
+                selectedSport() {
+                    const meBox = document.querySelector('.me-box');
+                    if (meBox) {
+                        meBox.style.display = this.selectedSport ? 'none' : 'block';
+                    }
+
+                    this.moveMeBox(this.sports.find(sport => sport.name === this.selectedSport).position);
+                }
+            },
+            created() {
+                const meBox = document.createElement('div');
+                meBox.classList.add('me-box');
+                meBox.textContent = 'Me';
+                document.querySelector('.sport-boxes').appendChild(meBox);
+                document.querySelector('.sport-boxes').style.backgroundColor = 'white';
+            }
+        });
+    </script>
+</body>
+</html>
